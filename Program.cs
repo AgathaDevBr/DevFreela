@@ -1,3 +1,8 @@
+using DevFreela.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
+using System.Configuration;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,10 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
+builder.Services.AddSingleton<DevFreelaDbContext>();
+//builder.Services.AddScoped<ExampleClass>(e => new ExampleClass { Name = "Initial Stage" });
 var app = builder.Build();
 
+builder.Services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo {  Title = "DevFreela.API", Version = "v1"}));
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
