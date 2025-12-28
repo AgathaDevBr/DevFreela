@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DevFreela.Application.InputModels;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DevFreela.API.Controllers
 {
@@ -7,24 +8,24 @@ namespace DevFreela.API.Controllers
     public class ProjectsController : ControllerBase
     {
 
-        //[HttpPost]
-        //public IActionResult Post([FromBody] CreateProjectModel createProject)
-        //{
-        //    try
-        //    {
-        //        if (createProject.Title.Length > 50)
-        //        {
-        //            return BadRequest("O título deve ter no máximo 50 caracteres.");
-        //        }
+        [HttpPost]
+        public IActionResult Post([FromBody] NewProjectInputModel createProject)
+        {
+            try
+            {
+                if (createProject.Title.Length > 50)
+                {
+                    return BadRequest("O título deve ter no máximo 50 caracteres.");
+                }
 
-        //        return CreatedAtAction(nameof(GetById), new { id = 1 }, null);
-        //    }
-        //    catch (Exception)
-        //    {
+                return CreatedAtAction(nameof(GetById), new { id = 1 }, null);
+            }
+            catch (Exception)
+            {
 
-        //        throw;
-        //    }
-        //}
+                throw;
+            }
+        }
         [HttpGet]
         public IActionResult Get(string query)
         {

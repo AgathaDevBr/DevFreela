@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DevFreela.Application.InputModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevFreela.API.Controllers
@@ -7,9 +8,16 @@ namespace DevFreela.API.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        //public UsersController(ExampleClass exampleClass)
-        //{
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id) 
+        {
+            return Ok();
+        }
 
-        //}
+        [HttpPost]
+        public IActionResult Post([FromBody] CreateUserInputModel createUserModel)
+        {
+            return CreatedAtAction(nameof(GetById), new { id = 1 }, createUserModel);
+        }   
     }
 }

@@ -11,7 +11,6 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSingleton<DevFreelaDbContext>();
-//builder.Services.AddScoped<ExampleClass>(e => new ExampleClass { Name = "Initial Stage" });
 var app = builder.Build();
 
 builder.Services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo {  Title = "DevFreela.API", Version = "v1"}));
