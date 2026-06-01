@@ -1,4 +1,5 @@
 ﻿using DevFreela.Core.Entities;
+using DevFreela.Core.Enums;
 using DevFreela.Core.Repositories;
 using System;
 using System.Collections.Generic;
@@ -16,44 +17,64 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
             _dbContext = dbContext;
         }
 
-        public Task AddCommentAsync(ProjectComment comment)
+        public async Task AddCommentAsync(ProjectComment comment)
         {
-            throw new NotImplementedException();
+             _dbContext.Comments.Add(comment);
+             await _dbContext.SaveChangesAsync();
         }
 
-        public Task CompleteAsync(int id)
+        public async Task CompleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var project =  _dbContext.Projects.SingleOrDefault(p => p.Id == id);
+
+            if (project != null)
+            {
+
+                project.Finish();
+                await _dbContext.SaveChangesAsync();
+            }
         }
 
         public Task<int> CreateAsync(Project project)
         {
-            throw new NotImplementedException();
+            _dbContext.Projects.Add(project);
+            _dbContext.SaveChanges();
+            return Task.FromResult(project.Id);
         }
 
         public Task DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            if(id != null) throw new Exception("O id do projeto não pode ser nulo");
+            var project = _dbContext.Projects.SingleOrDefault(p => p.Id == id);
+            _dbContext.Projects.Remove(project);
+            return Task.CompletedTask;
         }
 
-        public Task<List<Project>> GetAllAsync()
+        public async Task<List<Project>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            var listProjects = _dbContext.Projects.ToList();
+            return listProjects;
         }
 
         public Task<Project?> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            var project = _dbContext.Projects.SingleOrDefault(p => p.Id == id);
+            return Task.FromResult(project);
         }
 
         public Task StartAsync(int id)
         {
-            throw new NotImplementedException();
+            var projetActive = _dbContext.Projects.Where(p => p.Status == ProjectStatusEnum.InProgress && p.Id == id).FirstOrDefault().Start;
+            _dbContext.Update(projetActive);
+            return Task.CompletedTask;
         }
 
         public Task UpdateAsync(Project project)
         {
-            throw new NotImplementedException();
+            var updateProjetct = _dbContext.Projects.Where(p => p.Id == project.Id).FirstOrDefault();
+            updateProjetct.Update(project.Tittle, project.Description, project.TotalCost);
+            _dbContext.Update(updateProjetct);
+            return Task.CompletedTask;
         }
     }
 }
