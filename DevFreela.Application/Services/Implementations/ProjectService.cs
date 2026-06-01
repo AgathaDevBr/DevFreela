@@ -2,10 +2,12 @@
 using DevFreela.Application.Services.Interfaces;
 using DevFreela.Application.ViewModels;
 using DevFreela.Core.Entities;
+using DevFreela.Core.Repositories;
 using DevFreela.Infrastructure.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,9 +15,9 @@ namespace DevFreela.Application.Services.Implementations
 {
     public class ProjectService : IProjectService
     {
-        private readonly DevFreelaDbContext _dbContext;
+        private readonly IProjectRepository _dbContext;
 
-        public ProjectService(DevFreelaDbContext dbContext)
+        public ProjectService(IProjectRepository dbContext)
         {
             _dbContext = dbContext;
         }
@@ -24,32 +26,29 @@ namespace DevFreela.Application.Services.Implementations
         {
 
             var project = new Project(inputModel.Title, inputModel.Description, inputModel.ClientId, inputModel.FreelancerId, inputModel.TotalCost);
-            _dbContext.Projects.Add(project);
+            _dbContext.CreateAsync(project);
             return project.Id;
         }
 
         public void CreateComment(NewCommentInputModel inputModel)
         {
             var comment = new ProjectComment(inputModel.Content, inputModel.IdProject, inputModel.IdUser);
-            _dbContext.Comments.Add(comment);
+            _dbContext.AddCommentAsync(comment);
         }
 
         public void Delete(int id)
         {
-            var projet = _dbContext.Projects.SingleOrDefault(p => p.Id == id);
-            projet.Cancel();
-            _dbContext.Projects.Remove(projet);
+           _dbContext.DeleteAsync(id);
         }
 
         public void Update(UpdateProjectInputModel inputModel)
         {
-            var project = _dbContext.Projects.SingleOrDefault(p => p.Id == inputModel.Id);
-            project.Update(inputModel.Title, inputModel.Description, inputModel.TotalCost);
+            _dbContext.UpdateAsync(new Project(inputModel.Tittle, inputModel.Description, inputModel.IdClient, inputModel.IdFreelancer, inputModel.TotalCost));
 
         }
         public List<ProjectViewModel> GetAll(string query)
         {
-            var project = _dbContext.Projects;
+            var project = _dbContext.GetAllAsync().Result;
 
             var projectsViewModel = project
                 .Select(p => new ProjectViewModel(p.Id, p.Tittle, p.CreatedAt)).ToList();
@@ -59,7 +58,7 @@ namespace DevFreela.Application.Services.Implementations
 
         public ProjecDetailViewModel GetById(int id)
         {
-            var project = _dbContext.Projects.SingleOrDefault(p => p.Id == id);
+            var project = _dbContext.GetByIdAsync(id).Result;
             var dto = new ProjecDetailViewModel(
                 project.Id,
                 project.Tittle,
@@ -72,13 +71,11 @@ namespace DevFreela.Application.Services.Implementations
 
         public void Finish(int id)
         {
-            var projet = _dbContext.Projects.SingleOrDefault(p => p.Id == id);
-            projet.Finish();
+            _dbContext.CompleteAsync(id);
         }
         public void Start(int id)
         {
-            var projet = _dbContext.Projects.SingleOrDefault(p => p.Id == id);
-            projet.Start();
+            _dbContext.StartAsync(id);
         }
 
     }
