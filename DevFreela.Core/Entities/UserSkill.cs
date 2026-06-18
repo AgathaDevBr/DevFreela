@@ -8,6 +8,10 @@ namespace DevFreela.Core.Entities
 {
     public class UserSkill : BaseEntity
     {
+        private UserSkill()
+        {
+        }
+
         public UserSkill(int idUser, int idSkill)
         {
             IdUser = idUser;

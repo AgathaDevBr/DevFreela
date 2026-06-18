@@ -1,82 +1,110 @@
-﻿using DevFreela.Application.InputModels;
+using DevFreela.Application.InputModels;
 using DevFreela.Application.Services.Interfaces;
 using DevFreela.Application.ViewModels;
 using DevFreela.Core.Entities;
+using DevFreela.Core.Events;
+using DevFreela.Core.Messaging;
 using DevFreela.Core.Repositories;
-using DevFreela.Infrastructure.Persistence;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DevFreela.Application.Services.Implementations
 {
     public class ProjectService : IProjectService
     {
-        private readonly IProjectRepository _dbContext;
+        private const string ProjectCreatedQueue = "project-created";
 
-        public ProjectService(IProjectRepository dbContext)
+        private readonly IProjectRepository _projectRepository;
+        private readonly IMessageBus _messageBus;
+
+        public ProjectService(IProjectRepository projectRepository, IMessageBus messageBus)
         {
-            _dbContext = dbContext;
+            _projectRepository = projectRepository;
+            _messageBus = messageBus;
         }
 
-        public int Create(NewProjectInputModel inputModel)
+        public async Task<int> CreateAsync(NewProjectInputModel inputModel)
         {
-
             var project = new Project(inputModel.Title, inputModel.Description, inputModel.ClientId, inputModel.FreelancerId, inputModel.TotalCost);
-            _dbContext.CreateAsync(project);
-            return project.Id;
+            var projectId = await _projectRepository.CreateAsync(project);
+
+            await _messageBus.PublishAsync(
+                ProjectCreatedQueue,
+                new ProjectCreatedIntegrationEvent(
+                    projectId,
+                    inputModel.Title,
+                    inputModel.ClientId,
+                    inputModel.FreelancerId,
+                    inputModel.TotalCost));
+
+            return projectId;
         }
 
-        public void CreateComment(NewCommentInputModel inputModel)
+        public async Task CreateCommentAsync(NewCommentInputModel inputModel)
         {
             var comment = new ProjectComment(inputModel.Content, inputModel.IdProject, inputModel.IdUser);
-            _dbContext.AddCommentAsync(comment);
+            await _projectRepository.AddCommentAsync(comment);
         }
 
-        public void Delete(int id)
+        public async Task DeleteAsync(int id)
         {
-           _dbContext.DeleteAsync(id);
+            await _projectRepository.DeleteAsync(id);
         }
 
-        public void Update(UpdateProjectInputModel inputModel)
+        public async Task UpdateAsync(UpdateProjectInputModel inputModel)
         {
-            _dbContext.UpdateAsync(new Project(inputModel.Tittle, inputModel.Description, inputModel.IdClient, inputModel.IdFreelancer, inputModel.TotalCost));
+            var project = await _projectRepository.GetByIdAsync(inputModel.Id);
 
-        }
-        public List<ProjectViewModel> GetAll(string query)
-        {
-            var project = _dbContext.GetAllAsync().Result;
+            if (project is null)
+            {
+                return;
+            }
 
-            var projectsViewModel = project
-                .Select(p => new ProjectViewModel(p.Id, p.Tittle, p.CreatedAt)).ToList();
-
-            return projectsViewModel;
+            project.Update(inputModel.Title, inputModel.Description, inputModel.TotalCost);
+            await _projectRepository.UpdateAsync(project);
         }
 
-        public ProjecDetailViewModel GetById(int id)
+        public async Task<List<ProjectViewModel>> GetAllAsync(string? query)
         {
-            var project = _dbContext.GetByIdAsync(id).Result;
-            var dto = new ProjecDetailViewModel(
+            var projects = await _projectRepository.GetAllAsync();
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                projects = projects
+                    .Where(p => p.Tittle.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            return projects
+                .Select(p => new ProjectViewModel(p.Id, p.Tittle, p.CreatedAt))
+                .ToList();
+        }
+
+        public async Task<ProjecDetailViewModel?> GetByIdAsync(int id)
+        {
+            var project = await _projectRepository.GetByIdAsync(id);
+
+            if (project is null)
+            {
+                return null;
+            }
+
+            return new ProjecDetailViewModel(
                 project.Id,
                 project.Tittle,
                 project.Description,
                 project.TotalCost,
                 project.CreatedAt,
+                project.StartedAt,
                 project.FinishedAt);
-            return dto;
         }
 
-        public void Finish(int id)
+        public async Task FinishAsync(int id)
         {
-            _dbContext.CompleteAsync(id);
-        }
-        public void Start(int id)
-        {
-            _dbContext.StartAsync(id);
+            await _projectRepository.CompleteAsync(id);
         }
 
+        public async Task StartAsync(int id)
+        {
+            await _projectRepository.StartAsync(id);
+        }
     }
 }

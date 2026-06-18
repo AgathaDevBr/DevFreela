@@ -10,13 +10,13 @@ namespace DevFreela.Application.Services.Interfaces
 {
     public interface IProjectService
     {
-        List<ProjectViewModel> GetAll(string query);
-        ProjecDetailViewModel GetById(int id);
-        int Create(NewProjectInputModel inputModel);
-        void Update(UpdateProjectInputModel inputModel);
-        void Delete(int id);
-        void CreateComment(NewCommentInputModel inputModel);
-        void Start(int id);
-        void Finish(int id);
+        Task<List<ProjectViewModel>> GetAllAsync(string? query);
+        Task<ProjecDetailViewModel?> GetByIdAsync(int id);
+        Task<int> CreateAsync(NewProjectInputModel inputModel);
+        Task UpdateAsync(UpdateProjectInputModel inputModel);
+        Task DeleteAsync(int id);
+        Task CreateCommentAsync(NewCommentInputModel inputModel);
+        Task StartAsync(int id);
+        Task FinishAsync(int id);
     }
 }

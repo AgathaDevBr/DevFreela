@@ -1,17 +1,13 @@
-﻿using DevFreela.Core.Entities;
-using DevFreela.Core.Enums;
+using DevFreela.Core.Entities;
 using DevFreela.Core.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevFreela.Infrastructure.Persistence.Repositories
 {
     public class ProjectRepository : IProjectRepository
     {
         private readonly DevFreelaDbContext _dbContext;
+
         public ProjectRepository(DevFreelaDbContext dbContext)
         {
             _dbContext = dbContext;
@@ -19,62 +15,71 @@ namespace DevFreela.Infrastructure.Persistence.Repositories
 
         public async Task AddCommentAsync(ProjectComment comment)
         {
-             _dbContext.Comments.Add(comment);
-             await _dbContext.SaveChangesAsync();
+            await _dbContext.Comments.AddAsync(comment);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task CompleteAsync(int id)
         {
-            var project =  _dbContext.Projects.SingleOrDefault(p => p.Id == id);
+            var project = await _dbContext.Projects.SingleOrDefaultAsync(p => p.Id == id);
 
-            if (project != null)
+            if (project is null)
             {
-
-                project.Finish();
-                await _dbContext.SaveChangesAsync();
+                return;
             }
+
+            project.Finish();
+            await _dbContext.SaveChangesAsync();
         }
 
-        public Task<int> CreateAsync(Project project)
+        public async Task<int> CreateAsync(Project project)
         {
-            _dbContext.Projects.Add(project);
-            _dbContext.SaveChanges();
-            return Task.FromResult(project.Id);
+            await _dbContext.Projects.AddAsync(project);
+            await _dbContext.SaveChangesAsync();
+
+            return project.Id;
         }
 
-        public Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
-            if(id != null) throw new Exception("O id do projeto não pode ser nulo");
-            var project = _dbContext.Projects.SingleOrDefault(p => p.Id == id);
+            var project = await _dbContext.Projects.SingleOrDefaultAsync(p => p.Id == id);
+
+            if (project is null)
+            {
+                return;
+            }
+
             _dbContext.Projects.Remove(project);
-            return Task.CompletedTask;
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<List<Project>> GetAllAsync()
         {
-            var listProjects = _dbContext.Projects.ToList();
-            return listProjects;
+            return await _dbContext.Projects.AsNoTracking().ToListAsync();
         }
 
-        public Task<Project?> GetByIdAsync(int id)
+        public async Task<Project?> GetByIdAsync(int id)
         {
-            var project = _dbContext.Projects.SingleOrDefault(p => p.Id == id);
-            return Task.FromResult(project);
+            return await _dbContext.Projects.SingleOrDefaultAsync(p => p.Id == id);
         }
 
-        public Task StartAsync(int id)
+        public async Task StartAsync(int id)
         {
-            var projetActive = _dbContext.Projects.Where(p => p.Status == ProjectStatusEnum.InProgress && p.Id == id).FirstOrDefault().Start;
-            _dbContext.Update(projetActive);
-            return Task.CompletedTask;
+            var project = await _dbContext.Projects.SingleOrDefaultAsync(p => p.Id == id);
+
+            if (project is null)
+            {
+                return;
+            }
+
+            project.Start();
+            await _dbContext.SaveChangesAsync();
         }
 
-        public Task UpdateAsync(Project project)
+        public async Task UpdateAsync(Project project)
         {
-            var updateProjetct = _dbContext.Projects.Where(p => p.Id == project.Id).FirstOrDefault();
-            updateProjetct.Update(project.Tittle, project.Description, project.TotalCost);
-            _dbContext.Update(updateProjetct);
-            return Task.CompletedTask;
+            _dbContext.Projects.Update(project);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

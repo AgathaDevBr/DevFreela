@@ -1,29 +1,25 @@
-﻿using DevFreela.Application.Services.Interfaces;
+using DevFreela.Application.Services.Interfaces;
 using DevFreela.Application.ViewModels;
-using DevFreela.Infrastructure.Persistence;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DevFreela.Core.Repositories;
 
 namespace DevFreela.Application.Services.Implementations
 {
     public class SkillService : ISkillService
     {
-        private readonly DevFreelaDbContext _dbContext;
+        private readonly ISkillRepository _skillRepository;
 
-        public SkillService(DevFreelaDbContext dbContext)
+        public SkillService(ISkillRepository skillRepository)
         {
-            _dbContext = dbContext;
+            _skillRepository = skillRepository;
         }
-        public List<SkillViewModel> GetAll()
-        {
-            var skills = _dbContext.Skills;
-            var skillViewModel = skills
-                .Select(s => new SkillViewModel(s.Id, s.Description)).ToList();
 
-            return skillViewModel;
+        public async Task<List<SkillViewModel>> GetAllAsync()
+        {
+            var skills = await _skillRepository.GetAllAsync();
+
+            return skills
+                .Select(s => new SkillViewModel(s.Id, s.Description))
+                .ToList();
         }
     }
 }

@@ -8,12 +8,21 @@ namespace DevFreela.Core.Entities
 {
     public class User : BaseEntity
     {
+        private User()
+        {
+            FullName = string.Empty;
+            Email = string.Empty;
+            Skills = new List<UserSkill>();
+            OwnedProjects = new List<Project>();
+            FreelanceProjects = new List<Project>();
+        }
+
         public User(string fullName, string email, DateTime birthDate)
         {
             FullName = fullName;
             Email = email;
             BirthDate = birthDate;
-            CreatedAt = DateTime.Now;
+            CreatedAt = DateTime.UtcNow;
             Active = true;
             Skills = new List<UserSkill>();
             OwnedProjects = new List<Project>();

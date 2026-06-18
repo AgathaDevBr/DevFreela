@@ -9,6 +9,13 @@ namespace DevFreela.Core.Entities
 {
     public class Project : BaseEntity
     {
+        private Project()
+        {
+            Tittle = string.Empty;
+            Description = string.Empty;
+            Comments = new List<ProjectComment>();
+        }
+
         public Project(string tittle, string description, int idClient, int idFreelancer, decimal totalCost)
         {
             Tittle = tittle;
@@ -17,7 +24,7 @@ namespace DevFreela.Core.Entities
             IdFreelancer = idFreelancer;
             TotalCost = totalCost;
 
-            CreatedAt = DateTime.Now;
+            CreatedAt = DateTime.UtcNow;
             Status = ProjectStatusEnum.Created;
             Comments = new List<ProjectComment> ();
 
@@ -47,7 +54,7 @@ namespace DevFreela.Core.Entities
             if(Status == ProjectStatusEnum.InProgress)
             {
                 Status = ProjectStatusEnum.Finished;
-                FinishedAt = DateTime.Now;
+                FinishedAt = DateTime.UtcNow;
             }
         }
 
@@ -56,7 +63,7 @@ namespace DevFreela.Core.Entities
            if(Status == ProjectStatusEnum.Created)
             {
                 Status = ProjectStatusEnum.InProgress;
-                StartedAt = DateTime.Now;
+                StartedAt = DateTime.UtcNow;
             }
         }
 

@@ -8,10 +8,15 @@ namespace DevFreela.Core.Entities
 {
     public class Skill
     {
+        private Skill()
+        {
+            Description = string.Empty;
+        }
+
         public Skill(string description, int id)
         {
             Description = description;
-            CreatedAt = DateTime.Now;
+            CreatedAt = DateTime.UtcNow;
             Id = id;
         }
 

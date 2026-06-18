@@ -8,13 +8,18 @@ namespace DevFreela.Core.Entities
 {
     public class ProjectComment : BaseEntity
     {
+        private ProjectComment()
+        {
+            Content = string.Empty;
+        }
+
         public ProjectComment(string content, int idProject, int idUser)
         {
             Content = content;
             IdProject = idProject;
             IdUser = idUser;
 
-            CreatedAt = DateTime.Now;
+            CreatedAt = DateTime.UtcNow;
         }
 
         public string Content { get; private set; }
